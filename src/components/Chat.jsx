@@ -121,6 +121,8 @@ const Chat = ({ level, onBack }) => {
           finalResponse = finalResponse.replace(/\[ABUSIVE\]/g, '').trim();
           reason = 'abusive';
         }
+        
+        finalResponse = finalResponse.replace(/\[CONTINUE\]/g, '').trim();
 
         setMessages((prev) => [...prev, { role: 'user', content: finalResponse }]);
 
@@ -166,6 +168,8 @@ const Chat = ({ level, onBack }) => {
           finalResponse = finalResponse.replace(/\[ABUSIVE\]/g, '').trim();
           reason = 'abusive';
         }
+
+        finalResponse = finalResponse.replace(/\[CONTINUE\]/g, '').trim();
 
         setMessages((prev) => [...prev, { role: 'user', content: finalResponse }]);
 
