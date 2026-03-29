@@ -129,7 +129,7 @@ app.post('/api/chat', async (req, res) => {
 
   try {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       systemInstruction: buildSystemInstruction(level),
       generationConfig: {
         temperature: Math.min(1.0, 0.75 + level.id * 0.04),
