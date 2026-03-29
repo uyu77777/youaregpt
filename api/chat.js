@@ -47,13 +47,13 @@ const buildSystemInstruction = (level) => `
 ${level.prompt}
 `;
 
-const buildUserPrompt = ({ input, history }) => {
+const buildUserPrompt = ({ input, history, level }) => {
   if (!history.length) {
     return `
-人間の依頼者として会話を始めてください。
-最初の1通目だけを返してください。
-内容は、日本語話者の普通の人間が GPT に送りそうな、自然な質問や依頼にしてください。
-出力はその最初のメッセージ本文だけにしてください(「Human:」などのラベル不要)。
+あなたは「${level.name}」として、AIのアシスタント（プレイヤー）に話しかける最初のメッセージを出力してください。
+キャラクター設定を最大限に活かし、自然に、短めに1通目だけを開始してください。
+初期発言のトーンや行動指針は、システムプロンプトの「ユーザー特性ガイド」に完全に従ってください。
+(注釈: 返答テキスト内に「【人間の依頼者(あなた)】:」や「人間:」などのラベルは絶対に出力せず、純粋なセリフのみを返してください)
 `.trim();
   }
 
@@ -68,23 +68,14 @@ ${buildConversationTranscript(recentHistory)}
 最新の【AIのアシスタント(プレイヤー)】からの返答:
 ${input}
 
-あなたは「人間の依頼者」です。上記の【AIのアシスタント(プレイヤー)】の最新の返答に対し、次の【人間の依頼者(あなた)】の返答を1回分だけ出力してください。
-日本語で、自然に、短めに返してください。あなたが明示的に推敲を依頼したのでなければ、編集者やAIモードに入ってはいけません。
+あなたは「${level.name}」です。上記の【AIのアシスタント(プレイヤー)】の最新の返答に対し、次の【人間の依頼者(あなた)】の返答を1回分だけ出力してください。
+日本語で、自然に、短めに返してください。
 (注釈: 返答テキスト内に「【人間の依頼者(あなた)】:」や「人間:」などのラベルは絶対に出力せず、純粋なセリフのみを返してください)
 `.trim();
 };
 
 const formatGeminiError = (error) => {
-  const rawMessage = error?.message ?? 'Unknown Gemini API error.';
-
-  if (rawMessage.includes('RESOURCE_EXHAUSTED') || rawMessage.includes('quota')) {
-    return {
-      status: 429,
-      message: 'Gemini API の利用上限に達しています。時間をおいて待つか、APIキーの設定を確認してください。',
-      detail: rawMessage,
-    };
-  }
-
+// ... (omitting irrelevant lines) ...
   return {
     status: 500,
     message: rawMessage,
@@ -116,7 +107,7 @@ export default async function handler(req, res) {
       },
     });
 
-    const prompt = buildUserPrompt({ input, history });
+    const prompt = buildUserPrompt({ input, history, level });
     const result = await model.generateContent(prompt);
 
     return res.json({ text: result.response.text().trim() });

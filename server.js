@@ -53,13 +53,13 @@ const buildSystemInstruction = (level) => `
 ${level.prompt}
 `;
 
-const buildUserPrompt = ({ input, history }) => {
+const buildUserPrompt = ({ input, history, level }) => {
   if (!history.length) {
     return `
-人間の依頼者として会話を始めてください。
-最初の1通目だけを返してください。
-内容は、日本語話者の普通の人間が GPT に送りそうな、自然な質問や依頼にしてください。
-出力はその最初のメッセージ本文だけにしてください(「Human:」などのラベル不要)。
+あなたは「${level.name}」として、AIのアシスタント（プレイヤー）に話しかける最初のメッセージを出力してください。
+キャラクター設定を最大限に活かし、自然に、短めに1通目だけを開始してください。
+初期発言のトーンや行動指針は、システムプロンプトの「ユーザー特性ガイド」に完全に従ってください。
+(注釈: 返答テキスト内に「【人間の依頼者(あなた)】:」や「人間:」などのラベルは絶対に出力せず、純粋なセリフのみを返してください)
 `.trim();
   }
 
@@ -136,7 +136,7 @@ app.post('/api/chat', async (req, res) => {
       },
     });
 
-    const prompt = buildUserPrompt({ input, history });
+    const prompt = buildUserPrompt({ input, history, level });
     const result = await model.generateContent(prompt);
 
     res.json({ text: result.response.text().trim() });
