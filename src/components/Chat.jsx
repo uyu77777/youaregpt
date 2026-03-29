@@ -59,7 +59,8 @@ const Chat = ({ level, onBack }) => {
           const response = await generateAIResponse('', level, []);
           if (!isMounted) return;
           setStatusMessage('');
-          setMessages([{ role: 'user', content: response }]);
+          const cleanResponse = response.replace(/\[(?:RESOLVED|ABANDONED|ABUSIVE|CONTINUE)\]/gi, '').trim();
+          setMessages([{ role: 'user', content: cleanResponse }]);
         } catch (error) {
           if (!isMounted) return;
           setStatusMessage(buildGenerationErrorMessage(error));
@@ -150,7 +151,8 @@ const Chat = ({ level, onBack }) => {
     try {
       if (messages.length === 0) {
         const response = await generateAIResponse('', level, []);
-        setMessages([{ role: 'user', content: response }]);
+        const cleanResponse = response.replace(/\[(?:RESOLVED|ABANDONED|ABUSIVE|CONTINUE)\]/gi, '').trim();
+        setMessages([{ role: 'user', content: cleanResponse }]);
       } else {
         const lastMessage = messages[messages.length - 1];
         if (lastMessage.role === 'assistant') {
