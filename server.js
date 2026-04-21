@@ -127,27 +127,54 @@ app.post('/api/chat', async (req, res) => {
     return res.status(400).json({ error: 'Level data is invalid.' });
   }
 
-  try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash-lite',
-      systemInstruction: buildSystemInstruction(level),
-      generationConfig: {
-        temperature: Math.min(1.0, 0.75 + level.id * 0.04),
-      },
-    });
+  const modelsToTry = [
+    'gemini-2.5-flash-lite',
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-flash-lite-latest',
+    'gemini-flash-latest'
+  ];
 
-    const prompt = buildUserPrompt({ input, history, level });
-    const result = await model.generateContent(prompt);
+  let lastError;
+  for (const modelName of modelsToTry) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        systemInstruction: buildSystemInstruction(level),
+        generationConfig: {
+          temperature: Math.min(1.0, 0.75 + level.id * 0.04),
+        },
+      });
 
-    res.json({ text: result.response.text().trim() });
-  } catch (error) {
-    console.error('Gemini API Error:', error);
-    const formattedError = formatGeminiError(error);
-    res.status(formattedError.status).json({
-      error: formattedError.message,
-      detail: formattedError.detail,
-    });
+      const prompt = buildUserPrompt({ input, history, level });
+      const result = await model.generateContent(prompt);
+
+      return res.json({ text: result.response.text().trim() });
+    } catch (error) {
+      console.error(`Gemini API Error with model ${modelName}:`, error.message);
+      lastError = error;
+      
+      const rawMessage = error?.message ?? '';
+      if (
+        rawMessage.includes('RESOURCE_EXHAUSTED') || 
+        rawMessage.includes('quota') || 
+        rawMessage.includes('429') ||
+        rawMessage.includes('404') ||
+        rawMessage.includes('not found') ||
+        rawMessage.includes('not valid')
+      ) {
+        continue;
+      }
+      break;
+    }
   }
+
+  const formattedError = formatGeminiError(lastError);
+  return res.status(formattedError.status).json({
+    error: formattedError.message,
+    detail: formattedError.detail,
+  });
 });
 
 const PORT = Number(process.env.PORT || 3001);
