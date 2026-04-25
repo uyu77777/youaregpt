@@ -45,9 +45,6 @@ const runTest = async () => {
       
       const rawMessage = error?.message ?? '';
       if (
-        rawMessage.includes('RESOURCE_EXHAUSTED') || 
-        rawMessage.includes('quota') || 
-        rawMessage.includes('429') ||
         rawMessage.includes('404') ||
         rawMessage.includes('not found') ||
         rawMessage.includes('not valid') ||

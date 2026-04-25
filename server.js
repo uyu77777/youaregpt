@@ -63,8 +63,8 @@ const buildUserPrompt = ({ input, history, level }) => {
 `.trim();
   }
 
-  // 直近10往復(20メッセージ)程度に絞り込んでトークン消費を抑える
-  const recentHistory = history.slice(-20);
+  // 直近4往復(8メッセージ)程度に絞り込んでトークン消費を抑える
+  const recentHistory = history.slice(-8);
 
   return `
 reverse-ChatGPT（あなたは人間の依頼者、相手のプレイヤーがAIを演じるゲーム）の会話を続けてください。
@@ -156,17 +156,16 @@ app.post('/api/chat', async (req, res) => {
       
       const rawMessage = error?.message ?? '';
       if (
-        rawMessage.includes('RESOURCE_EXHAUSTED') || 
-        rawMessage.includes('quota') || 
-        rawMessage.includes('429') ||
         rawMessage.includes('404') ||
         rawMessage.includes('not found') ||
         rawMessage.includes('not valid') ||
         rawMessage.includes('503') ||
         rawMessage.includes('500')
       ) {
+        // モデルが存在しない、または一時的なサーバーエラーの場合は次のモデルを試す
         continue;
       }
+      // 429(Too Many Requests)やQuotaエラーの場合は、連続リトライするとさらに制限を食らったり無駄にAPIを叩くため即座に中断する
       break;
     }
   }
