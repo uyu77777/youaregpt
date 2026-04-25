@@ -101,7 +101,6 @@ export default async function handler(req, res) {
   const modelsToTry = [
     'gemini-2.5-flash-lite',
     'gemini-2.5-flash',
-    'gemini-2.0-flash',
     'gemini-1.5-flash',
     'gemini-flash-lite-latest',
     'gemini-flash-latest'
@@ -133,7 +132,9 @@ export default async function handler(req, res) {
         rawMessage.includes('429') ||
         rawMessage.includes('404') ||
         rawMessage.includes('not found') ||
-        rawMessage.includes('not valid')
+        rawMessage.includes('not valid') ||
+        rawMessage.includes('503') ||
+        rawMessage.includes('500')
       ) {
         continue;
       }
